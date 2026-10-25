@@ -315,6 +315,13 @@ impl QingjianInputController {
                 return self.handle_translation_key(digit, 1, client);
             }
         }
+        // ⇧回车：上屏高亮候选的第一个译词，与 ⌥+数字走同一条路（学习、拼音消耗一致）。
+        // 只在组句中认：不在组句时 ⇧回车 照常交给应用。表达式模式里回车另有含义。
+        // 候选没有译词时吞掉按键不动（与 ⌥+数字一致）。
+        if composing && !expression && pressed == Modifiers::SHIFT && (key == 36 || key == 76) {
+            let index = host::with(|h| h.session.highlighted);
+            return self.commit_translation_at(index, 0, client);
+        }
         let selector = match key {
             36 | 76 => Some(sel!(insertNewline:)),
             48 if shift => Some(sel!(insertBacktab:)),
